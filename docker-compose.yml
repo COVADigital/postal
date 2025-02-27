@@ -2,9 +2,10 @@ version: "3"
 services:
   postal:
     image: ${POSTAL_IMAGE}
+    container_name: postal
     depends_on:
-      - mariadb
-    entrypoint: ["/docker-entrypoint.sh"]
+      mariadb:
+        condition: service_healthy
     volumes:
       - "./docker/ci-config:/config"
     environment:
@@ -19,11 +20,49 @@ services:
       WAIT_FOR_TIMEOUT: 90
       WAIT_FOR_TARGETS: |-
         mariadb:3306
+    ports:
+      - "25:25"        # SMTP inbound
+      - "587:587"      # SMTP submission
+      - "2525:2525"    # Alternate SMTP port
+      - "465:465"      # SMTPS
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - coolify.managed=true
+      - coolify.name=postal
+      - coolify.serviceName=postal
+    networks:
+      - coolify
+      - postal-network
 
   mariadb:
     image: mariadb
-    restart: always
+    container_name: postal-mariadb
+    restart: unless-stopped
     environment:
       MARIADB_DATABASE: postal
       MARIADB_ALLOW_EMPTY_PASSWORD: 'yes'
       MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'yes'
+    volumes:
+      - postal-mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - coolify
+      - postal-network
+
+volumes:
+  postal-mariadb:
+
+networks:
+  coolify:
+    external: true
+  postal-network:
+    driver: bridge
