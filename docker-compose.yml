@@ -1,7 +1,7 @@
 version: "3"
 services:
   postal:
-    image: ${POSTAL_IMAGE}
+    image: 'ghcr.io/postalserver/postal:latest'
     container_name: postal
     depends_on:
       mariadb:
