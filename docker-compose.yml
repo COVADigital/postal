@@ -50,6 +50,12 @@ services:
     volumes:
       - postal-mariadb:/var/lib/mysql
 
+    healthcheck:
+      test: ["CMD-SHELL", "sleep 15 && mysql --user=root --execute='SELECT 1;' || exit 1"] #Added sleep
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
     networks:
       - coolify
       - postal-network
