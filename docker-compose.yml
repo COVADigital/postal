@@ -50,7 +50,7 @@ services:
     volumes:
       - postal-mariadb:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -uroot --silent || exit 1"]
+      test: ["CMD-SHELL", "mysql --user=root --execute='SELECT 1;' --silent || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 5
