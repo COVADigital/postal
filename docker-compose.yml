@@ -50,10 +50,10 @@ services:
     volumes:
       - postal-mariadb:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -uroot --socket=/run/mysqld/mysqld.sock --silent || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
     networks:
       - coolify
       - postal-network
