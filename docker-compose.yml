@@ -49,7 +49,7 @@ services:
       MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'yes'
     volumes:
       - postal-mariadb:/var/lib/mysql
-   healthcheck:
+    healthcheck:
       test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
       interval: 10s
       timeout: 5s
