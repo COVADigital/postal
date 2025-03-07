@@ -1,3 +1,4 @@
+version: "3"
 services:
   postal:
     image: 'ghcr.io/postalserver/postal:latest'
@@ -24,7 +25,7 @@ services:
       - "587:587"      # SMTP submission
       - "2525:2525"    # Alternate SMTP port
       - "465:465"      # SMTPS
-      - "5000:5000"    # Add this line: Postal web UI
+      - "5000:5000"    # Postal Web UI (HTTP)
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000"]
@@ -43,3 +44,31 @@ services:
     networks:
       - coolify
       - postal-network
+
+  mariadb:
+    image: mariadb
+    container_name: postal-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: postal
+      MARIADB_ALLOW_EMPTY_PASSWORD: 'yes'
+      MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: 'yes'
+    volumes:
+      - postal-mariadb:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--su-mysql", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - coolify
+      - postal-network
+      
+volumes:
+  postal-mariadb:
+
+networks:
+  coolify:
+    external: true
+  postal-network:
+    driver: bridge
