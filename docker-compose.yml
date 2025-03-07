@@ -9,11 +9,6 @@ services:
     volumes:
       - "./docker/ci-config:/config"
     environment:
-      # This value is injected by Coolify; you can edit it in Coolify’s UI.
-      - SERVICE_FQDN_POSTAL=${SERVICE_FQDN_POSTAL}
-      # Postal uses POSTAL_HOST to generate external URLs. If not set in the UI,
-      # it will default to "postal.app.covadigital.io".
-      - POSTAL_HOST=${SERVICE_FQDN_POSTAL_HOSTNAME:-postal.app.covadigital.io}
       - POSTAL_SIGNING_KEY_PATH=/config/signing.key
       - MAIN_DB_HOST=mariadb
       - MAIN_DB_USERNAME=root
@@ -36,16 +31,6 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
-    labels:
-      - coolify.managed=true
-      - coolify.name=postal
-      - coolify.serviceName=postal
-      - traefik.enable=true
-      # Traefik will use the hostname defined in SERVICE_FQDN_POSTAL_HOSTNAME (or the default)
-      - traefik.http.routers.postal.rule=Host(`${SERVICE_FQDN_POSTAL_HOSTNAME}`)
-      - traefik.http.routers.postal.entrypoints=websecure
-      - traefik.http.routers.postal.tls.certresolver=letsencrypt
-      - traefik.http.services.postal.loadbalancer.server.port=5000
     networks:
       - coolify
       - postal-network
