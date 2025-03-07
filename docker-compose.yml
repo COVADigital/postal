@@ -19,13 +19,18 @@ services:
       - RAILS_LOG_ENABLED=false
       - WAIT_FOR_TIMEOUT=90
       - WAIT_FOR_TARGETS=mariadb:3306
+      # This variable is injected by Coolify. It should be set to something like:
+      # SERVICE_FQDN_POSTAL=https://postal.app.covadigital.io
       - SERVICE_FQDN_POSTAL=${SERVICE_FQDN_POSTAL}
+      # Optional: If you can set a separate hostname variable, Postal can use it for generating external links.
+      # If not, Postal will rely on SERVICE_FQDN_POSTAL.
+      - POSTAL_HOST=${SERVICE_FQDN_POSTAL_HOSTNAME}
     ports:
       - "25:25"        # SMTP inbound
       - "587:587"      # SMTP submission
       - "2525:2525"    # Alternate SMTP port
       - "465:465"      # SMTPS
-      - "5000:5000"    # Postal Web UI (internal port used by healthcheck and Traefik routing)
+      - "5000:5000"    # Postal Web UI (used for healthchecks and internal routing)
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5000"]
@@ -37,6 +42,7 @@ services:
       - coolify.name=postal
       - coolify.serviceName=postal
       - traefik.enable=true
+      # Traefik will use this hostname to route HTTPS traffic (without the port)
       - traefik.http.routers.postal.rule=Host(`${SERVICE_FQDN_POSTAL_HOSTNAME}`)
       - traefik.http.routers.postal.entrypoints=websecure
       - traefik.http.routers.postal.tls.certresolver=letsencrypt
@@ -63,7 +69,7 @@ services:
     networks:
       - coolify
       - postal-network
-
+      
 volumes:
   postal-mariadb:
 
